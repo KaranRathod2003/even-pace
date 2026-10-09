@@ -1,26 +1,123 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@theme {
+  /*
+   * "Waggo" palette: warm cream paper, caramel-brown ink, sunny yellow
+   * highlights, with sky / coral / mint / lavender / cotton-candy pastels.
+   */
+  --color-paper: #f7f1de; /* Warm Cream */
+  --color-card: #fffdf6;
+  --color-raised: #faf9f5; /* Cloudy */
+  --color-ink: #562f00; /* Caramel Brown */
+  --color-ink-2: #5e3b0c;
+  --color-mute: #80653d;
+  --color-line: #d9c79b;
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  /* Accent tokens (named "blue" historically): primary actions are caramel with yellow text. */
+  --color-blue: #562f00;
+  --color-blue-deep: #3f2200;
+  --color-blue-soft: #fff3a8;
+  --color-on-blue: #ffe761;
+  --color-sky: #8a5a12;
+  --color-navy: #562f00;
+  --color-cyan: #ffe761;
+
+  /* Brand pastels */
+  --color-sun: #ffe761;
+  --color-sky-pastel: #b0d6f7;
+  --color-coral: #fcb390;
+  --color-mint: #91f8d3;
+  --color-lavender: #d3bdfc;
+  --color-candy: #fea3e3;
+
+  /* Status colours: pastel fill + deep text */
+  --color-done: #91f8d3;
+  --color-done-ink: #0d6b4a;
+  --color-pending: #fcb390;
+  --color-pending-ink: #8a3a0e;
+  --color-carried: #d3bdfc;
+  --color-carried-ink: #4a2a8c;
+  --color-today: #b0d6f7;
+  --color-today-ink: #0f4a7d;
+
+  --font-sans: var(--font-outfit);
   --font-mono: var(--font-geist-mono);
+
+  --shadow-card: 0 1px 2px rgb(86 47 0 / 0.06), 0 8px 22px -12px rgb(86 47 0 / 0.2);
+  --shadow-lift: 0 2px 6px rgb(86 47 0 / 0.08), 0 24px 48px -16px rgb(86 47 0 / 0.32);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  color-scheme: light;
+  -webkit-tap-highlight-color: transparent;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--color-paper);
+  background-image:
+    radial-gradient(50rem 26rem at 0% -10%, rgb(255 231 97 / 0.35), transparent 60%),
+    radial-gradient(40rem 24rem at 100% 0%, rgb(176 214 247 / 0.35), transparent 60%);
+  background-attachment: fixed;
+  color: var(--color-ink);
+}
+
+::selection {
+  background: rgb(255 231 97 / 0.8);
+}
+
+/* Animated pastel ring for tasks left midway. */
+@property --ring-angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
+@keyframes ring-spin {
+  to {
+    --ring-angle: 360deg;
+  }
+}
+
+.glow-ring {
+  position: relative;
+  box-shadow:
+    0 0 0 4px rgb(255 231 97 / 0.45),
+    0 16px 36px -14px rgb(252 179 144 / 0.9);
+}
+
+.glow-ring::before {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  padding: 2px;
+  border-radius: inherit;
+  background: conic-gradient(
+    from var(--ring-angle),
+    var(--color-coral),
+    var(--color-sun),
+    var(--color-mint),
+    var(--color-sky-pastel),
+    var(--color-lavender),
+    var(--color-candy),
+    var(--color-coral)
+  );
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  animation: ring-spin 3.5s linear infinite;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glow-ring::before {
+    animation: none;
+  }
+}
+
+.scrollbar-none {
+  scrollbar-width: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
 }
