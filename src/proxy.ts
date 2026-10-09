@@ -1,25 +1,20 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { SESSION_COOKIE, isValidSession, passcodeEnabled } from "@/lib/passcode";
 
-// Until real login exists: if APP_PASSWORD is set (e.g. on the deployed site),
-// the browser asks for it once. Any username works. Locally it's off.
-export function proxy(request: NextRequest) {
-  const password = process.env.APP_PASSWORD;
-  if (!password) return NextResponse.next();
+// Passcode gate (only when APP_PASSWORD is set, i.e. on the deployed site).
+// Unauthenticated page visits go to /unlock; other requests get 401.
+export async function proxy(request: NextRequest) {
+  if (!passcodeEnabled()) return NextResponse.next();
+  if (request.nextUrl.pathname === "/unlock") return NextResponse.next();
 
-  const header = request.headers.get("authorization") ?? "";
-  const [scheme, encoded] = header.split(" ");
-  if (scheme === "Basic" && encoded) {
-    const decoded = atob(encoded);
-    const given = decoded.slice(decoded.indexOf(":") + 1);
-    if (given === password) return NextResponse.next();
-  }
-  return new NextResponse("Authentication required", {
-    status: 401,
-    headers: { "WWW-Authenticate": 'Basic realm="flow"' },
-  });
+  if (await isValidSession(request.cookies.get(SESSION_COOKIE)?.value)) return NextResponse.next();
+
+  const isPageVisit = request.method === "GET" && request.headers.get("accept")?.includes("text/html");
+  if (isPageVisit) return NextResponse.redirect(new URL("/unlock", request.url));
+  return new NextResponse("Unauthorized", { status: 401 });
 }
 
 export const config = {
-  // The cron endpoint has its own secret; PWA files must load without a password prompt.
+  // The cron endpoint has its own secret; PWA files must load before unlocking.
   matcher: ["/((?!_next/static|_next/image|icon.png|apple-icon.png|icons/|sw.js|manifest.webmanifest|api/cron/).*)"],
 };
